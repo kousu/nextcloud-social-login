@@ -232,7 +232,7 @@ class ProviderService
     {
         $config = [];
         $scopes = [
-            'discord' => 'identify email guilds',
+            'discord' => 'identify email guilds guilds.members.read',
         ];
         $providers = json_decode($this->config->getAppValue($this->appName, 'oauth_providers'), true) ?: [];
         if (is_array($providers) && in_array($provider, array_keys($providers))) {
@@ -413,6 +413,16 @@ class ProviderService
                 throw new LoginException($this->l->t('Login is available only to members of the following Discord guilds: %s', $config['guilds']));
             };
             $checkGuilds();
+
+            // read Discord roles into NextCloud groups
+            $profile->data['groups'] = [];
+            foreach($userGuilds as $guild) {
+                # https://discord.com/developers/docs/resources/guild#get-guild-member
+                $guild_data = $adapter->apiRequest('users/@me/guilds/' . $guild->id . '/member' );
+                $profile->data['groups'] = array_merge($profile->data['groups'], $guild_data->roles ?? []);
+                // TODO: /member returns roles as their ID; to get their name requires an extra API call
+                //       (and perhaps extra permissions?)
+            }
         }
 
         if (!empty($config['logout_url'])) {
