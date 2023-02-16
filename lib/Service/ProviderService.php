@@ -416,12 +416,17 @@ class ProviderService
 
             // read Discord roles into NextCloud groups
             $profile->data['groups'] = [];
-            foreach($userGuilds as $guild) {
-                # https://discord.com/developers/docs/resources/guild#get-guild-member
-                $guild_data = $adapter->apiRequest('users/@me/guilds/' . $guild->id . '/member' );
-                $profile->data['groups'] = array_merge($profile->data['groups'], $guild_data->roles ?? []);
-                // TODO: /member returns roles as their ID; to get their name requires an extra API call
-                //       (and perhaps extra permissions?)
+            if(!empty(allowedGuilds)) {
+                foreach($userGuilds as $guild) {
+                    if (!in_array($guild->id ?? null, $allowedGuilds)) {
+                        continue;
+                    }
+                    # https://discord.com/developers/docs/resources/guild#get-guild-member
+                    $guild_data = $adapter->apiRequest('users/@me/guilds/' . $guild->id . '/member' );
+                    $profile->data['groups'] = array_merge($profile->data['groups'], $guild_data->roles ?? []);
+                    // TODO: /member returns roles as their ID; to get their name requires an extra API call
+                    //       (and perhaps extra permissions?)
+                }
             }
         }
 
