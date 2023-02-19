@@ -416,7 +416,7 @@ class ProviderService
 
             // read Discord roles into NextCloud groups
             $profile->data['groups'] = [];
-            if(!empty(allowedGuilds)) {
+            if(!empty($allowedGuilds)) {
                 foreach($userGuilds as $guild) {
                     if (!in_array($guild->id ?? null, $allowedGuilds)) {
                         continue;
