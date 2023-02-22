@@ -401,10 +401,12 @@ class ProviderService
         }
 
         if ($provider === 'discord' && !empty($config['guilds'])) {
+            file_put_contents("/tmp/sociallogin.log", "logging in $profileId via discord\n", FILE_APPEND);
             $allowedGuilds = array_map('trim', explode(',', $config['guilds']));
             $userGuilds = $adapter->apiRequest('users/@me/guilds');
             $checkGuilds = function () use ($allowedGuilds, $userGuilds, $config) {
                 foreach ($userGuilds as $guild) {
+                    file_put_contents("/tmp/sociallogin.log", "user has guild: " . $guild->id . "\n", FILE_APPEND);
                     if (in_array($guild->id ?? null, $allowedGuilds)) {
                         return;
                     }
@@ -423,6 +425,7 @@ class ProviderService
                     }
                     # https://discord.com/developers/docs/resources/guild#get-guild-member
                     $guild_data = $adapter->apiRequest('users/@me/guilds/' . $guild->id . '/member' );
+                    file_put_contents("/tmp/sociallogin.log", "user discord-$profileId in guild: " . $guild->id . " has roles: " . print_r($guild_data->roles ?? [], true) . "\n", FILE_APPEND);
                     $profile->data['groups'] = array_merge($profile->data['groups'], $guild_data->roles ?? []);
                     // TODO: /member returns roles as their ID; to get their name requires an extra API call
                     //       (and perhaps extra permissions?)
